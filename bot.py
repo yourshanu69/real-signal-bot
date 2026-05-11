@@ -81,4 +81,4 @@ def get_signal(pair):
 
         if price <= bb_lower and rsi < 30 and price > prev_price:
             last_signal = time.time()
-            return "CALL", f"RSI
+            return "CALL", f"RSI: {rsi_value}"
