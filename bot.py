@@ -80,5 +80,5 @@ def get_signal(pair):
         if pair in last_signal and time.time() - last_signal < 300: return None
 
         if price <= bb_lower and rsi < 30 and price > prev_price:
-            last_signal = time.time()
-            return "CALL", f"RSI: {rsi_value}"
+    last_signal = time.time()
+    return "CALL", f"RSI: {rsi}"  ← Tab চাপো, ভিতরে ঢুকাও
