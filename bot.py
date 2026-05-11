@@ -4,9 +4,10 @@ import telebot
 import threading
 from flask import Flask
 
-TELEGRAM_BOT_TOKEN = "8343572374:AAF7LsPYu7XjS7KYMxtAmsy0RBuGiWrUXmE"
-TELEGRAM_CHAT_ID = "-1003095197963"
-TWELVEDATA_API_KEY = "20709bd186db4413924c7c2b164da09b"
+import os
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
+TWELVEDATA_API_KEY = os.environ.get("TWELVEDATA_API_KEY")
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
