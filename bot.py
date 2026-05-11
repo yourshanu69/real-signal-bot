@@ -60,7 +60,7 @@ def check_signals():
 def start(message):
     bot.reply_to(message, "Bot is running ✅")
 
-threading.Thread(target=check_signals, daemon=True).start()
+threading.Thread(target=bot.polling, daemon=True).start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
