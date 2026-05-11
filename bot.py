@@ -91,4 +91,6 @@ def check_signals():
 
 if __name__ == '__main__':
     threading.Thread(target=check_signals, daemon=True).start()
-    bot.polling(non_stop=True)
+    threading.Thread(target=lambda: bot.polling(non_stop=True)).start()
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
