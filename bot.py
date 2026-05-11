@@ -77,8 +77,12 @@ def get_signal(pair):
         bb_upper = float(latest['bbands_upper'])
         bb_lower = float(latest['bbands_lower'])
 
-        if pair in last_signal and time.time() - last_signal < 300: return None
-
-        if price <= bb_lower and rsi < 30 and price > prev_price:
-    last_signal = time.time()
-        return "CALL", f"RSI: {rsi}"
+            if price <= bb_lower and rsi < 30 and price > prev_price:
+        last_signal = time.time()
+        return "CALL", f"RSI: {rsi:.2f}"
+    
+    if price >= bb_upper and rsi > 70 and price < prev_price:
+        last_signal = time.time()
+        return "PUT", f"RSI: {rsi:.2f}"
+        
+    return None
