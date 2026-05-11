@@ -12,7 +12,7 @@ TWELVEDATA_API_KEY = os.environ.get("TWELVEDATA_API_KEY")
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
-last_signal = {} # Pair wise cooldown track করবে
+last_signal = {}
 
 @app.route('/')
 def home():
@@ -49,8 +49,46 @@ def get_signal(pair):
     url = f"https://api.twelvedata.com/time_series?symbol={pair}&interval=1min&outputsize=2&apikey={TWELVEDATA_API_KEY}&indicators=rsi,bbands"
     try:
         data = requests.get(url).json()
-        if 'values' not in data: return None
+        if 'values' not in data:
+            return None
 
         latest = data['values'][0]
         prev = data['values'][1]
-        price = float
+        price = float(latest['close'])
+        prev_price = float(prev['close'])
+        rsi = float(latest['rsi'])
+        bb_upper = float(latest['bbands_upper'])
+        bb_lower = float(latest['bbands_lower'])
+
+        if pair in last_signal and time.time() - last_signal[pair] < 180:
+            return None
+
+        if price <= bb_lower and rsi < 30 and price > prev_price:
+            last_signal[pair] = time.time()
+            return "CALL", f"RSI: {rsi:.2f} | Price: {price}"
+
+        if price >= bb_upper and rsi > 70 and price < prev_price:
+            last_signal[pair] = time.time()
+            return "PUT", f"RSI: {rsi:.2f} | Price: {price}"
+
+        return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+def check_signals():
+    pairs = ["EUR/USD", "GBP/USD", "USD/JPY"]
+    while True:
+        for pair in pairs:
+            signal = get_signal(pair)
+            if signal:
+                text = f"🔥 {pair}\nSignal: {signal[0]}\n{signal[1]}\n⏰ 1 Min Trade\n🔒 3 Min Filtered"
+                try:
+                    bot.send_message(TELEGRAM_CHAT_ID, text)
+                except Exception as e:
+                    print(f"Send Error: {e}")
+        time.sleep(60)
+
+if __name__ == '__main__':
+    threading.Thread(target=check_signals, daemon=True).start()
+    bot.polling(non_stop=True)
