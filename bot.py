@@ -12,7 +12,7 @@ TWELVEDATA_API_KEY = os.environ.get("TWELVEDATA_API_KEY")
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 app = Flask(__name__)
-last_signal = {}
+last_signal = {} # Pair wise time save হবে
 
 @app.route('/')
 def home():
@@ -50,6 +50,7 @@ def get_signal(pair):
     try:
         data = requests.get(url).json()
         if 'values' not in data:
+            print(f"No data for {pair}")
             return None
 
         latest = data['values'][0]
@@ -60,20 +61,25 @@ def get_signal(pair):
         bb_upper = float(latest['bbands_upper'])
         bb_lower = float(latest['bbands_lower'])
 
+        # Cooldown Check - Fixed
         if pair in last_signal and time.time() - last_signal[pair] < 180:
+            print(f"{pair} in cooldown")
             return None
 
+        # CALL Condition
         if price <= bb_lower and rsi < 30 and price > prev_price:
-            last_signal[pair] = time.time()
+            last_signal[pair] = time.time() # Fixed
             return "CALL", f"RSI: {rsi:.2f} | Price: {price}"
 
+        # PUT Condition
         if price >= bb_upper and rsi > 70 and price < prev_price:
-            last_signal[pair] = time.time()
+            last_signal[pair] = time.time() # Fixed
             return "PUT", f"RSI: {rsi:.2f} | Price: {price}"
 
+        print(f"{pair} - No condition match. RSI:{rsi:.2f}")
         return None
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error {pair}: {e}")
         return None
 
 def check_signals():
@@ -85,6 +91,7 @@ def check_signals():
                 text = f"🔥 {pair}\nSignal: {signal[0]}\n{signal[1]}\n⏰ 1 Min Trade\n🔒 3 Min Filtered"
                 try:
                     bot.send_message(TELEGRAM_CHAT_ID, text)
+                    print(f"Signal sent: {pair}")
                 except Exception as e:
                     print(f"Send Error: {e}")
         time.sleep(60)
