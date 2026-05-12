@@ -3,17 +3,17 @@ import time
 import requests
 import pandas as pd
 import pandas_ta as ta
-from flask import Flask
-import telebot
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 ALPHA_VANTAGE_KEY = os.environ.get('ALPHA_VANTAGE_KEY')
 
-bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-app = Flask(__name__)
-
 pairs = ["EURUSD", "GBPUSD", "USDJPY"]
+
+def send_telegram(msg):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    data = {"chat_id": TELEGRAM_CHAT_ID, "text": msg}
+    requests.post(url, data=data, timeout=10)
 
 def get_signal(pair):
     from_symbol = pair[:3]
@@ -24,7 +24,7 @@ def get_signal(pair):
         data = requests.get(url, timeout=15).json()
         key = "Time Series FX (5min)"
         if key not in data:
-            print(f"Error for {pair}: {data}")
+            print(f"API Error {pair}: {data}")
             return None
 
         df = pd.DataFrame(data[key]).T
@@ -55,18 +55,14 @@ def get_signal(pair):
         print(f"Error {pair}: {e}")
         return None
 
-def send_signals():
-    for pair in pairs:
-        signal = get_signal(pair)
-        if signal:
-            bot.send_message(TELEGRAM_CHAT_ID, signal)
-        time.sleep(15)
-
-@app.route('/')
-def home(): return "Bot running!"
-
 if __name__ == "__main__":
+    send_telegram("✅ Bot Started - Alpha Vantage Active")
     print("Bot started...")
     while True:
-        send_signals()
+        for pair in pairs:
+            signal = get_signal(pair)
+            if signal:
+                send_telegram(signal)
+                print(f"Signal sent: {pair}")
+            time.sleep(15)
         time.sleep(300)
