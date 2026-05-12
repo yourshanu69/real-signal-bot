@@ -52,6 +52,9 @@ def get_signal(pair):
     try:
         data = requests.get(url).json()
         if 'values' not in data:
+    print(f"API Response: {data}")  # এই লাইন Add করো
+    print(f"No data for {pair}")
+    return None
             print(f"No data for {pair}")
             return None
 
