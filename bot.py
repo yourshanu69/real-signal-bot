@@ -53,14 +53,35 @@ def get_signal(pair):
             print(f"No data for {pair}")
             return None
 
-        latest = data['values'][0]
-        prev = data['values'][1]
-        price = float(latest['close'])
-        prev_price = float(prev['close'])
-        rsi = float(latest['rsi'])
-        bb_upper = float(latest['bbands_upper'])
-        bb_lower = float(latest['bbands_lower'])
-
+            # Fix: 50টা Candle নিয়ে RSI + BB নিজে বানাও
+    import pandas as pd
+    import pandas_ta as ta
+    
+    df = pd.DataFrame(data['values'])
+    df = df.astype(float)
+    df = df.iloc[::-1].reset_index(drop=True) # উল্টায় দাও
+    
+    if len(df) < 20:
+        print(f"No data for {pair}")
+        return None
+        
+    # RSI আর Bollinger Band Calculate করো
+    df['rsi'] = ta.rsi(df['close'], length=14)
+    bbands = ta.bbands(df['close'], length=20)
+    df['bb_upper'] = bbands['BBU_20_2.0']
+    df['bb_lower'] = bbands['BBL_20_2.0']
+    
+    # Latest Value নাও
+    latest = df.iloc[-1]
+    prev = df.iloc[-2]
+    
+    price = latest['close']
+    prev_price = prev['close']
+    rsi = latest['rsi']
+    bb_upper = latest['bb_upper']
+    bb_lower = latest['bb_lower']
+    
+    print(f"{pair} - Price: {price:.5f} | RSI: {rsi:.2f}")
         # Cooldown Check - Fixed
         if pair in last_signal and time.time() - last_signal[pair] < 180:
             print(f"{pair} in cooldown")
