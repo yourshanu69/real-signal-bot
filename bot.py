@@ -106,7 +106,7 @@ def get_signal(pair):
         return None
 
 def check_signals():
-    pairs = ["EUR/USD", "GBP/USD", "USD/JPY"]
+    pairs = ["EURUSD", "GBPUSD", "USDJPY"]  
     while True:
         for pair in pairs:
             signal = get_signal(pair)
