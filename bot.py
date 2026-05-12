@@ -1,6 +1,8 @@
 import requests
 import time
 import telebot
+import pandas as pd
+import pandas_ta as ta
 import threading
 from flask import Flask
 import os
@@ -46,17 +48,14 @@ def send_help(message):
     bot.reply_to(message, "📞 Help:\n\nএকই Pair এ 3 মিনিট পরপর Signal আসবে। এতে Scam কম হয়।")
 
 def get_signal(pair):
-    url = f"https://api.twelvedata.com/time_series?symbol={pair}&interval=1min&outputsize=2&apikey={TWELVEDATA_API_KEY}&indicators=rsi,bbands"
+    url = f"https://api.twelvedata.com/time_series?symbol={pair}&interval=1min&outputsize=50&apikey={TWELVEDATA_API_KEY}"
     try:
         data = requests.get(url).json()
         if 'values' not in data:
             print(f"No data for {pair}")
             return None
 
-            # Fix: 50টা Candle নিয়ে RSI + BB নিজে বানাও
-    import pandas as pd
-    import pandas_ta as ta
-    
+            # Fix: 50টা Candle নিয়ে RSI + BB নিজে বানাও 
     df = pd.DataFrame(data['values'])
     df = df.astype(float)
     df = df.iloc[::-1].reset_index(drop=True) # উল্টায় দাও
